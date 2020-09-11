@@ -7,15 +7,33 @@ import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
 import uploadConfig from '../config/upload';
 import ImportTransactionsService from '../services/ImportTransactionsService';
+import RedisCacheProvider from '../provider/CacheProivider/implementations/RedisCacheProvider';
 
 const transactionsRouter = Router();
+const cacheProvider = new RedisCacheProvider();
 const upload = multer(uploadConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   const transactionsRepository = getCustomRepository(TransactionsRepository);
-  const transactions = await transactionsRepository.find();
-  const balance = await transactionsRepository.getBalance();
-  return response.json({ transactions, balance });
+
+  let transationsAndBalance = await cacheProvider.recover<any>(
+    'transations-balance-list:all',
+  );
+
+  if (!transationsAndBalance) {
+    const transactions = await transactionsRepository.find();
+    const balance = await transactionsRepository.getBalance();
+    const objTransationsAndBalance = { transactions, balance };
+
+    transationsAndBalance = { ...objTransationsAndBalance };
+
+    await cacheProvider.save('transations-balance-list:all', {
+      ...objTransationsAndBalance,
+    });
+    console.log('teste 1');
+  }
+
+  return response.json(transationsAndBalance);
 });
 
 transactionsRouter.post('/', async (request, response) => {
@@ -30,6 +48,8 @@ transactionsRouter.post('/', async (request, response) => {
     category,
   });
 
+  await cacheProvider.invalidate('transations-balance-list:all');
+
   return response.json(transaction);
 });
 
@@ -39,6 +59,9 @@ transactionsRouter.delete('/:id', async (request, response) => {
   const deleteTransactionService = new DeleteTransactionService();
 
   await deleteTransactionService.execute(id);
+
+  await cacheProvider.invalidate('transations-balance-list:all');
+
   return response.status(204).send();
 });
 
@@ -51,6 +74,8 @@ transactionsRouter.post(
     const transaction = await updateUserAvatarService.execute(
       request.file.path,
     );
+
+    await cacheProvider.invalidate('transations-balance-list:all');
 
     return response.json(transaction);
   },
