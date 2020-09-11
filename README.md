@@ -35,7 +35,7 @@ O projeto foi desenvolvido as seguintes tecnologias
 
 ```bash
 
-**React js**
+* React js
 
 # Clone do projeto react:
 $ git clone https://github.com/douglasdsda/RedisTeste
@@ -74,5 +74,14 @@ $ yarn dev:server
 # ⚡ Configurar Docker
 
 ```bash
-# baixar docker postgres
-$ yarn test
+# baixar docker redis
+
+$ docker run --name redis -p 6379:6379 -d -t redis:alpine 
+
+# criar postgres esta na pasta docker-compose-postgres
+
+$ apos redis e postgres instalados tem que criar database chamado, teste_redis
+
+```
+
+---
