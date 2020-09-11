@@ -82,6 +82,17 @@ $ docker run --name redis -p 6379:6379 -d -t redis:alpine
 
 $ apos redis e postgres instalados tem que criar database chamado, teste_redis
 
+#criar migrations
+$  yarn typeorm migration:create -n nome-da-migration
+
+#executar migrations
+
+$ yarn typeorm migration:run
+
+#executar revert migrations
+
+$ yarn typeorm migration:revert
+
 ```
 
 ---
